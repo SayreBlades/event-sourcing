@@ -7,8 +7,10 @@ Run them to see events being published and notifications being sent.
 
 import logging
 from event_sourced.event_bus import reset_event_bus
+from event_sourced.event_correlator import reset_event_correlator
 from event_sourced.notification_service import NotificationService
 from event_sourced.services.ordering import OrderingService
+from event_sourced.services.pricing import PricingService
 from shared.data_store import DataStore
 from shared.channels import NotificationChannels
 
@@ -168,6 +170,146 @@ def run_payment_failed_demo():
     return channels.get_all_sent_messages()
 
 
+def run_price_drop_demo():
+    """
+    Demonstrate the complex "Price Drop Alert" notification scenario.
+    
+    This shows the key advantage of event-sourced architecture:
+    - PricingService just publishes "price changed"
+    - NotificationService handles ALL the complex logic:
+      - Finding customers with product in cart
+      - Checking notification preferences
+      - Checking segment eligibility
+      - Sending notifications
+    
+    The pricing service doesn't need to know about carts, customers, or preferences!
+    """
+    print("\n" + "=" * 70)
+    print("EVENT-SOURCED DEMO: Price Drop Alert (Complex Scenario)")
+    print("=" * 70 + "\n")
+    
+    # Reset to clean state
+    event_bus = reset_event_bus()
+    correlator = reset_event_correlator()
+    data_store = DataStore()
+    channels = NotificationChannels()
+    
+    # Create services
+    notification_service = NotificationService(
+        event_bus=event_bus,
+        data_store=data_store,
+        channels=channels,
+        correlator=correlator,
+    )
+    pricing_service = PricingService(
+        event_bus=event_bus,
+        data_store=data_store,
+    )
+    
+    notification_service.start()
+    
+    print("Setup complete. The following customers have prod-001 (Router) in cart:")
+    print("  - Bob (cust-002): silver segment, HAS price alerts enabled")
+    print("  - Carol (cust-003): platinum segment, HAS price alerts enabled")
+    print("  - Eva (cust-005): gold segment, HAS price alerts enabled")
+    print("")
+    print("Eligible segments for price alerts: gold, platinum")
+    print("Expected notifications: Carol and Eva (Bob is silver, not eligible)")
+    print("")
+    print("-" * 70)
+    print("ACTION: Dropping price of Router from $149.99 to $119.99")
+    print("-" * 70 + "\n")
+    
+    # Drop the price - this triggers the complex notification flow
+    pricing_service.update_price("prod-001", 119.99)
+    
+    print("\n" + "-" * 70)
+    print("RESULT:")
+    print("-" * 70)
+    
+    # Show what was sent
+    print("\nNotifications sent:")
+    for msg in channels.get_all_sent_messages():
+        print(f"  {msg}")
+    
+    # Verify expectations
+    sent_to = [msg.recipient for msg in channels.get_all_sent_messages()]
+    print("\nVerification:")
+    print(f"  Bob (silver) notified: {'bob.smith@example.com' in sent_to}")
+    print(f"  Carol (platinum) notified: {'carol.williams@example.com' in sent_to}")
+    print(f"  Eva (gold) notified: {'eva.martinez@example.com' in sent_to}")
+    
+    notification_service.stop()
+    return channels.get_all_sent_messages()
+
+
+def run_order_complete_demo():
+    """
+    Demonstrate the complex "Order Complete" notification scenario.
+    
+    This shows event aggregation:
+    - Multi-item order ships in multiple shipments
+    - Each shipment publishes a LineItemStatusChanged event
+    - Notification service tracks state via EventCorrelator
+    - Only sends "Order Complete" when ALL items have shipped
+    """
+    print("\n" + "=" * 70)
+    print("EVENT-SOURCED DEMO: Order Complete (Event Aggregation)")
+    print("=" * 70 + "\n")
+    
+    # Reset to clean state
+    event_bus = reset_event_bus()
+    correlator = reset_event_correlator()
+    data_store = DataStore()
+    channels = NotificationChannels()
+    
+    notification_service = NotificationService(
+        event_bus=event_bus,
+        data_store=data_store,
+        channels=channels,
+        correlator=correlator,
+    )
+    ordering_service = OrderingService(
+        event_bus=event_bus,
+        data_store=data_store,
+    )
+    
+    notification_service.start()
+    
+    print("Setup complete. Order ord-001 (Alice) has 2 items:")
+    print("  - prod-001: Wireless Router X500")
+    print("  - prod-002: USB-C Hub Pro")
+    print("")
+    print("Expected: NO notification until BOTH items ship")
+    print("")
+    
+    print("-" * 70)
+    print("ACTION 1: Shipping first item (prod-001 - Router)")
+    print("-" * 70 + "\n")
+    
+    ordering_service.ship_line_item("ord-001", "prod-001")
+    
+    print(f"\nNotifications so far: {channels.get_total_sent_count()}")
+    print("(Should be 0 - still waiting for second item)")
+    
+    print("\n" + "-" * 70)
+    print("ACTION 2: Shipping second item (prod-002 - USB Hub)")
+    print("-" * 70 + "\n")
+    
+    ordering_service.ship_line_item("ord-001", "prod-002")
+    
+    print("\n" + "-" * 70)
+    print("RESULT: Order Complete notification should now be sent!")
+    print("-" * 70)
+    
+    print("\nNotifications sent:")
+    for msg in channels.get_all_sent_messages():
+        print(f"  {msg}")
+    
+    notification_service.stop()
+    return channels.get_all_sent_messages()
+
+
 if __name__ == "__main__":
     print("\nRunning Event-Sourced Notification Demos")
     print("=" * 70)
@@ -175,4 +317,7 @@ if __name__ == "__main__":
     run_order_shipped_demo()
     print("\n")
     
-    run_payment_failed_demo()
+    run_price_drop_demo()
+    print("\n")
+    
+    run_order_complete_demo()

@@ -12,5 +12,13 @@ They do NOT know about the notification service - they just publish events.
 """
 
 from event_sourced.services.ordering import OrderingService
+from event_sourced.services.pricing import PricingService
+from event_sourced.services.billing import BillingService
+from event_sourced.services.promotions import PromotionsService
 
-__all__ = ["OrderingService"]
+__all__ = [
+    "OrderingService",
+    "PricingService",
+    "BillingService",
+    "PromotionsService",
+]
