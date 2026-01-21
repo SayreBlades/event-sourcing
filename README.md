@@ -1,41 +1,161 @@
 # Notification Architecture Demo
 
-A demonstration comparing **event-sourced** vs **API-driven** notification service architectures.
+A demonstration comparing **event-sourced** vs **API-driven** notification service architectures for an e-commerce/BSS platform.
+
+## Overview
+
+This project implements the same notification scenarios using two different architectural approaches, allowing direct comparison of their tradeoffs.
+
+### The Two Approaches
+
+1. **Event-Sourced** (`event_sourced/`)
+   - Domain services publish events
+   - Notification service subscribes and handles all notification logic
+   - Loose coupling via event bus
+
+2. **API-Driven** (`api_driven/`)
+   - Domain services call notification API directly
+   - Caller decides when to notify, API handles how
+   - Direct coupling between services
 
 ## Quick Start
 
 ```bash
-# Install dependencies (including dev tools)
+# Install dependencies
 uv sync --extra dev
 
-# Run tests
+# Run all tests
 uv run pytest
 
-# Start the demo API
-uv run uvicorn api.main:app --reload
+# Run event-sourced demos
+uv run python -m event_sourced.demo
+
+# Run API-driven demos
+uv run python -m api_driven.demo
+
+# Start the API server
+uv run uvicorn api_driven.notification_api:app --reload
 ```
 
-## Overview
+## Notification Scenarios
 
-This project demonstrates the tradeoffs between two architectural approaches for building a notification service in an e-commerce/BSS platform:
+| Scenario | Complexity | Key Challenge |
+|----------|------------|---------------|
+| Order Shipped | Simple | 1:1 event-to-notification |
+| Payment Failed | Medium | Include contextual info |
+| Price Drop Alert | Complex | Multi-condition eligibility |
+| Order Complete | Complex | Event aggregation |
 
-1. **Event-Sourced**: Domain services publish events, notification service subscribes and determines when/how to send notifications
-2. **API-Driven**: Domain services call the notification API directly, deciding when to notify
+## Architecture Comparison
 
-See [plan.md](plan.md) for the detailed implementation plan and tradeoff analysis.
+### Event-Sourced Flow
+```
+OrderingService                    EventBus                 NotificationService
+     │                                │                            │
+     │ ship_order()                   │                            │
+     │──────────────────────────────>│                            │
+     │        publish(OrderStatusChanged)                         │
+     │                                │──────────────────────────>│
+     │                                │     receives event         │
+     │                                │                            │ query customer
+     │                                │                            │ query preferences
+     │                                │                            │ send email/sms
+```
+
+### API-Driven Flow
+```
+OrderingService                NotificationAPI                  Channels
+     │                              │                              │
+     │ ship_order()                 │                              │
+     │  └─ build context            │                              │
+     │  └─ POST /notify ──────────>│                              │
+     │                              │ query customer               │
+     │                              │ render template              │
+     │                              │ send ───────────────────────>│
+```
+
+## Key Findings
+
+### Price Drop Alert Comparison
+
+| Aspect | Event-Sourced | API-Driven |
+|--------|--------------|------------|
+| PricingService queries carts | ❌ No | ✅ Yes |
+| PricingService queries customers | ❌ No | ✅ Yes |
+| PricingService knows eligibility rules | ❌ No | ✅ Yes |
+| Notification logic location | Centralized | Distributed |
+
+### Order Complete Comparison
+
+| Aspect | Event-Sourced | API-Driven |
+|--------|--------------|------------|
+| Who tracks shipment state? | EventCorrelator | OrderingService |
+| Where is completion logic? | NotificationService | OrderingService |
+| Domain service complexity | Low | High |
 
 ## Project Structure
 
-- `shared/` - Common infrastructure (models, data store, channels, templates)
-- `event_sourced/` - Event-sourced approach implementation
-- `api_driven/` - API-driven approach implementation
-- `comparison/` - Side-by-side analysis
-- `data/` - JSON fixtures for testing
-- `tests/` - Test suite
+```
+event-stream/
+├── shared/                 # Common infrastructure
+│   ├── models.py          # Domain models
+│   ├── data_store.py      # JSON data access
+│   ├── channels.py        # Email/SMS mock
+│   └── templates.py       # Message templates
+│
+├── event_sourced/          # Event-sourced approach
+│   ├── event_bus.py       # Pub/sub mechanism
+│   ├── events.py          # Event definitions
+│   ├── notification_service.py
+│   ├── event_correlator.py
+│   └── services/          # Domain services
+│
+├── api_driven/             # API-driven approach
+│   ├── notification_api.py # FastAPI service
+│   ├── models.py          # API models
+│   └── services/          # Domain services
+│
+├── comparison/             # Analysis
+│   └── analysis.md        # Detailed comparison
+│
+├── data/                   # JSON fixtures
+└── tests/                  # Test suite (154 tests)
+```
 
-## Scenarios Demonstrated
+## Test Coverage
 
-1. **Order Shipped** (Simple) - Direct 1:1 event-to-notification
-2. **Payment Failed** (Medium) - Preference lookup + templating
-3. **Price Drop Alert** (Complex) - Multi-condition eligibility
-4. **Order Complete** (Complex) - Event aggregation across multiple shipments
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=. --cov-report=html
+
+# Run specific approach tests
+uv run pytest tests/test_event_sourced/
+uv run pytest tests/test_api_driven/
+```
+
+## Documentation
+
+- [Event-Sourced README](event_sourced/README.md) - Architecture details
+- [API-Driven README](api_driven/README.md) - Architecture details  
+- [Comparison Analysis](comparison/analysis.md) - Detailed tradeoff analysis
+- [Implementation Plan](plan.md) - Original requirements and phases
+
+## Conclusion
+
+For systems with complex, cross-cutting notification requirements:
+
+**Event-Sourced is generally preferred** because:
+- Domain services stay simple and focused
+- All notification logic is centralized
+- Adding new notifications doesn't require changing domain services
+- Debugging is easier with centralized logic
+
+**API-Driven works well** when:
+- Notifications are simple and direct
+- Caller already has all context
+- You want explicit control in the calling service
+
+See [comparison/analysis.md](comparison/analysis.md) for the full analysis.
