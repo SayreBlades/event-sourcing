@@ -61,29 +61,38 @@ uv run python cli.py serve --port 8080
 ## Architecture Comparison
 
 ### Event-Sourced Flow
-```
-OrderingService                    EventBus                 NotificationService
-     │                                │                            │
-     │ ship_order()                   │                            │
-     │──────────────────────────────>│                            │
-     │        publish(OrderStatusChanged)                         │
-     │                                │──────────────────────────>│
-     │                                │     receives event         │
-     │                                │                            │ query customer
-     │                                │                            │ query preferences
-     │                                │                            │ send email/sms
+
+```mermaid
+sequenceDiagram
+    participant OS as OrderingService
+    participant EB as EventBus
+    participant NS as NotificationService
+    participant DS as DataStore
+    participant CH as Channels
+
+    OS->>OS: ship_order()
+    OS->>EB: publish(OrderStatusChanged)
+    EB->>NS: receives event
+    NS->>DS: query customer
+    NS->>DS: query preferences
+    NS->>CH: send email/sms
 ```
 
 ### API-Driven Flow
-```
-OrderingService                NotificationAPI                  Channels
-     │                              │                              │
-     │ ship_order()                 │                              │
-     │  └─ build context            │                              │
-     │  └─ POST /notify ──────────>│                              │
-     │                              │ query customer               │
-     │                              │ render template              │
-     │                              │ send ───────────────────────>│
+
+```mermaid
+sequenceDiagram
+    participant OS as OrderingService
+    participant API as NotificationAPI
+    participant DS as DataStore
+    participant CH as Channels
+
+    OS->>OS: ship_order()
+    OS->>OS: build context
+    OS->>API: POST /notify
+    API->>DS: query customer
+    API->>API: render template
+    API->>CH: send email/sms
 ```
 
 ## Key Findings
