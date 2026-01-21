@@ -132,6 +132,77 @@ def run_order_complete_demo():
     return channels.get_all_sent_messages()
 
 
+def run_price_drop_demo():
+    """
+    Demonstrate the complex "Price Drop Alert" scenario in API-driven approach.
+    
+    KEY INSIGHT: The PricingService must:
+    1. Update the price (its core job)
+    2. Query carts to find affected customers (CROSS-DOMAIN!)
+    3. Query preferences to check opt-in (CROSS-DOMAIN!)
+    4. Check segment eligibility (CROSS-DOMAIN!)
+    5. Call notification API for each eligible customer
+    
+    Compare to event-sourced where PricingService just publishes "price changed"
+    and ALL the eligibility logic is in the notification service.
+    """
+    from api_driven.services.pricing import PricingService
+    
+    print("\n" + "=" * 70)
+    print("API-DRIVEN DEMO: Price Drop Alert (Shows Cross-Domain Complexity)")
+    print("=" * 70 + "\n")
+    
+    data_store = DataStore()
+    channels = NotificationChannels()
+    notification_api = NotificationAPI(channels=channels, data_store=data_store)
+    pricing_service = PricingService(
+        notification_api=notification_api,
+        data_store=data_store,
+    )
+    
+    print("Setup complete. The following customers have prod-001 (Router) in cart:")
+    print("  - Bob (cust-002): silver segment")
+    print("  - Carol (cust-003): platinum segment")
+    print("  - Eva (cust-005): gold segment")
+    print("")
+    print("Eligible segments: gold, platinum")
+    print("")
+    print("KEY DIFFERENCE from event-sourced:")
+    print("  PricingService must query carts, customers, and preferences!")
+    print("  In event-sourced, it just publishes an event.")
+    print("")
+    
+    print("-" * 70)
+    print("ACTION: Dropping price of Router from $149.99 to $119.99")
+    print("-" * 70 + "\n")
+    
+    pricing_service.update_price("prod-001", 119.99)
+    
+    print("\n" + "-" * 70)
+    print("RESULT:")
+    print("-" * 70)
+    
+    print("\nNotifications sent:")
+    for msg in channels.get_all_sent_messages():
+        print(f"  {msg}")
+    
+    # Verify
+    sent_to = [msg.recipient for msg in channels.get_all_sent_messages()]
+    print("\nVerification:")
+    print(f"  Bob (silver) notified: {'bob.smith@example.com' in sent_to}")
+    print(f"  Carol (platinum) notified: {'carol.williams@example.com' in sent_to}")
+    print(f"  Eva (gold) notified: {'eva.martinez@example.com' in sent_to}")
+    
+    print("\nCOMPLEXITY NOTE:")
+    print("  PricingService had to import and query:")
+    print("    - Cart data (to find who has the product)")
+    print("    - Customer data (to check segments)")
+    print("    - Preference data (to check opt-in)")
+    print("  This creates tight coupling between pricing and other domains.")
+    
+    return channels.get_all_sent_messages()
+
+
 if __name__ == "__main__":
     print("\nRunning API-Driven Notification Demos")
     print("=" * 70)
@@ -140,3 +211,6 @@ if __name__ == "__main__":
     print("\n")
     
     run_order_complete_demo()
+    print("\n")
+    
+    run_price_drop_demo()
