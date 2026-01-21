@@ -99,20 +99,20 @@ sequenceDiagram
 
 ### Price Drop Alert Comparison
 
-| Aspect | Event-Sourced | API-Driven |
-|--------|--------------|------------|
-| PricingService queries carts | ❌ No | ✅ Yes |
-| PricingService queries customers | ❌ No | ✅ Yes |
-| PricingService knows eligibility rules | ❌ No | ✅ Yes |
-| Notification logic location | Centralized | Distributed |
+| Aspect                                 | Event-Sourced | API-Driven  |
+|----------------------------------------|---------------|-------------|
+| PricingService queries carts           | ❌ No         | ✅ Yes      |
+| PricingService queries customers       | ❌ No         | ✅ Yes      |
+| PricingService knows eligibility rules | ❌ No         | ✅ Yes      |
+| Notification logic location            | Centralized   | Distributed |
 
 ### Order Complete Comparison
 
-| Aspect | Event-Sourced | API-Driven |
-|--------|--------------|------------|
-| Who tracks shipment state? | EventCorrelator | OrderingService |
+| Aspect                     | Event-Sourced       | API-Driven      |
+|----------------------------|---------------------|-----------------|
+| Who tracks shipment state? | EventCorrelator     | OrderingService |
 | Where is completion logic? | NotificationService | OrderingService |
-| Domain service complexity | Low | High |
+| Domain service complexity  | Low                 | High            |
 
 ## Project Structure
 
