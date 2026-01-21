@@ -1,0 +1,44 @@
+[
+  {
+    "id": "prod-001",
+    "name": "Wireless Router X500",
+    "price": 149.99,
+    "category": "networking",
+    "description": "High-speed dual-band wireless router with advanced security features"
+  },
+  {
+    "id": "prod-002",
+    "name": "USB-C Hub Pro",
+    "price": 79.99,
+    "category": "accessories",
+    "description": "7-in-1 USB-C hub with HDMI, USB-A, SD card reader"
+  },
+  {
+    "id": "prod-003",
+    "name": "Mechanical Keyboard Elite",
+    "price": 159.99,
+    "category": "peripherals",
+    "description": "RGB mechanical keyboard with Cherry MX switches"
+  },
+  {
+    "id": "prod-004",
+    "name": "4K Webcam Ultra",
+    "price": 199.99,
+    "category": "peripherals",
+    "description": "4K webcam with auto-focus and noise-canceling microphone"
+  },
+  {
+    "id": "prod-005",
+    "name": "Ergonomic Mouse Pro",
+    "price": 89.99,
+    "category": "peripherals",
+    "description": "Ergonomic wireless mouse with programmable buttons"
+  },
+  {
+    "id": "prod-006",
+    "name": "Monitor Stand Deluxe",
+    "price": 49.99,
+    "category": "accessories",
+    "description": "Adjustable monitor stand with built-in USB hub"
+  }
+]

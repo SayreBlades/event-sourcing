@@ -1,0 +1,52 @@
+[
+  {
+    "id": "pay-001",
+    "order_id": "ord-001",
+    "customer_id": "cust-001",
+    "amount": 309.97,
+    "status": "SUCCESS",
+    "failure_reason": null,
+    "attempt_number": 1,
+    "created_at": "2024-06-01T14:31:00Z"
+  },
+  {
+    "id": "pay-002",
+    "order_id": "ord-002",
+    "customer_id": "cust-002",
+    "amount": 299.97,
+    "status": "SUCCESS",
+    "failure_reason": null,
+    "attempt_number": 1,
+    "created_at": "2024-06-01T09:16:00Z"
+  },
+  {
+    "id": "pay-003",
+    "order_id": "ord-003",
+    "customer_id": "cust-003",
+    "amount": 199.99,
+    "status": "SUCCESS",
+    "failure_reason": null,
+    "attempt_number": 1,
+    "created_at": "2024-05-25T11:01:00Z"
+  },
+  {
+    "id": "pay-004",
+    "order_id": "ord-004",
+    "customer_id": "cust-004",
+    "amount": 149.99,
+    "status": "FAILED",
+    "failure_reason": "Insufficient funds",
+    "attempt_number": 1,
+    "created_at": "2024-06-03T08:46:00Z"
+  },
+  {
+    "id": "pay-005",
+    "order_id": "ord-004",
+    "customer_id": "cust-004",
+    "amount": 149.99,
+    "status": "PENDING",
+    "failure_reason": null,
+    "attempt_number": 2,
+    "created_at": "2024-06-03T12:00:00Z"
+  }
+]

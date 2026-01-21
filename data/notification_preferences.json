@@ -1,0 +1,47 @@
+[
+  {
+    "customer_id": "cust-001",
+    "preferences": {
+      "order_updates": {"email": true, "sms": true},
+      "price_alerts": {"email": true, "sms": false},
+      "promotions": {"email": true, "sms": false},
+      "payment_alerts": {"email": true, "sms": true}
+    }
+  },
+  {
+    "customer_id": "cust-002",
+    "preferences": {
+      "order_updates": {"email": true, "sms": false},
+      "price_alerts": {"email": true, "sms": true},
+      "promotions": {"email": false, "sms": false},
+      "payment_alerts": {"email": true, "sms": false}
+    }
+  },
+  {
+    "customer_id": "cust-003",
+    "preferences": {
+      "order_updates": {"email": true, "sms": true},
+      "price_alerts": {"email": true, "sms": true},
+      "promotions": {"email": true, "sms": true},
+      "payment_alerts": {"email": true, "sms": true}
+    }
+  },
+  {
+    "customer_id": "cust-004",
+    "preferences": {
+      "order_updates": {"email": true, "sms": false},
+      "price_alerts": {"email": false, "sms": false},
+      "promotions": {"email": true, "sms": false},
+      "payment_alerts": {"email": true, "sms": false}
+    }
+  },
+  {
+    "customer_id": "cust-005",
+    "preferences": {
+      "order_updates": {"email": true, "sms": true},
+      "price_alerts": {"email": true, "sms": false},
+      "promotions": {"email": true, "sms": false},
+      "payment_alerts": {"email": true, "sms": true}
+    }
+  }
+]

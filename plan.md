@@ -27,6 +27,7 @@
 | Data persistence      | JSON files                                                          |
 | Execution style       | Tests + runnable demo (FastAPI)                                     |
 | Documentation         | Inline comments, separate docs per approach, mermaid diagrams       |
+| Package management    | uv (all dependencies in pyproject.toml)                             |
 
 ---
 
@@ -120,8 +121,7 @@ We will evaluate each approach against these dimensions:
 event-stream/
 ├── plan.md                          # This file
 ├── README.md                        # Project overview and quick start
-├── requirements.txt                 # Python dependencies
-├── pyproject.toml                   # Project configuration
+├── pyproject.toml                   # Project configuration & dependencies (uv)
 │
 ├── data/                            # JSON fixtures
 │   ├── customers.json
@@ -200,7 +200,7 @@ event-stream/
 **Objective:** Establish the core models, data layer, and notification infrastructure that both approaches will use.
 
 **Deliverables:**
-1. Project setup (pyproject.toml, requirements.txt)
+1. Project setup (pyproject.toml with all dependencies)
 2. Domain models (Customer, Product, Order, Cart, LineItem)
 3. JSON data fixtures with realistic test data
 4. Data store abstraction for JSON file access
@@ -208,7 +208,6 @@ event-stream/
 6. Notification templates
 
 **Files to create:**
-- `requirements.txt`
 - `pyproject.toml`
 - `shared/models.py`
 - `shared/data_store.py`
@@ -218,19 +217,27 @@ event-stream/
 
 **Verification:**
 ```bash
-# 1. Install dependencies
-pip install -e .
+# 1. Sync dependencies (including dev tools like pytest)
+uv sync --extra dev
 
-# 2. Run model tests
-pytest tests/test_shared/test_models.py -v
+# 2. Run all shared tests
+uv run pytest tests/test_shared/ -v
 
 # 3. Verify data loading
-python -c "from shared.data_store import DataStore; ds = DataStore(); print(f'Loaded {len(ds.get_customers())} customers')"
+uv run python -c "from shared.data_store import DataStore; ds = DataStore(); print(f'Loaded {len(ds.get_customers())} customers, {len(ds.get_products())} products, {len(ds.get_orders())} orders')"
 
 # 4. Verify channels work
-python -c "from shared.channels import EmailChannel; EmailChannel().send('test@example.com', 'Test', 'Body')"
-# Should print: [EMAIL] To: test@example.com | Subject: Test | Body: Body
+uv run python -c "from shared.channels import EmailChannel, SMSChannel; EmailChannel().send('test@example.com', 'Test', 'Body'); SMSChannel().send('+1-555-1234', 'Order shipped!')"
+
+# 5. Verify templates work
+uv run python -c "from shared.templates import render_notification, NotificationType; subj, body = render_notification(NotificationType.PRICE_DROP_ALERT, 'email', customer_name='Alice', product_name='Router', old_price=149.99, new_price=119.99, savings=30.00, discount_percent=20); print(f'Subject: {subj}')"
 ```
+
+**Expected output:**
+- Tests: `72 passed`
+- Data: `Loaded 5 customers, 6 products, 4 orders`
+- Channels: `[EMAIL] To: test@example.com...` and `[SMS] To: +1-555-1234...`
+- Templates: `Subject: Price Drop Alert: Router is now $119.99!`
 
 ---
 
@@ -253,13 +260,13 @@ python -c "from shared.channels import EmailChannel; EmailChannel().send('test@e
 **Verification:**
 ```bash
 # 1. Test event bus pub/sub
-pytest tests/test_event_sourced/test_event_bus.py -v
+uv run pytest tests/test_event_sourced/test_event_bus.py -v
 
 # 2. Test simple notification flow
-pytest tests/test_event_sourced/test_simple_notification.py -v
+uv run pytest tests/test_event_sourced/test_simple_notification.py -v
 
 # 3. Manual verification
-python -c "
+uv run python -c "
 from event_sourced.demo import run_order_shipped_demo
 run_order_shipped_demo()
 "
@@ -287,20 +294,20 @@ run_order_shipped_demo()
 **Verification:**
 ```bash
 # 1. Test price drop alert (complex conditions)
-pytest tests/test_event_sourced/test_price_drop_alert.py -v
+uv run pytest tests/test_event_sourced/test_price_drop_alert.py -v
 
 # 2. Test order complete (event aggregation)
-pytest tests/test_event_sourced/test_order_complete.py -v
+uv run pytest tests/test_event_sourced/test_order_complete.py -v
 
 # 3. Manual verification of price drop
-python -c "
+uv run python -c "
 from event_sourced.demo import run_price_drop_demo
 run_price_drop_demo()
 "
 # Should show: Only eligible customers notified
 
 # 4. Manual verification of order complete
-python -c "
+uv run python -c "
 from event_sourced.demo import run_order_complete_demo
 run_order_complete_demo()
 "
@@ -326,13 +333,13 @@ run_order_complete_demo()
 **Verification:**
 ```bash
 # 1. Test API endpoints
-pytest tests/test_api_driven/test_notification_api.py -v
+uv run pytest tests/test_api_driven/test_notification_api.py -v
 
 # 2. Test simple notification via API
-pytest tests/test_api_driven/test_simple_notification.py -v
+uv run pytest tests/test_api_driven/test_simple_notification.py -v
 
 # 3. Start API and test manually
-uvicorn api_driven.notification_api:app --reload &
+uv run uvicorn api_driven.notification_api:app --reload &
 curl -X POST http://localhost:8000/notify \
   -H "Content-Type: application/json" \
   -d '{"notification_type": "ORDER_SHIPPED", "customer_id": "cust-001", "context": {"order_id": "ord-001"}}'
@@ -361,13 +368,13 @@ curl -X POST http://localhost:8000/notify \
 **Verification:**
 ```bash
 # 1. Test price drop alert via API
-pytest tests/test_api_driven/test_price_drop_alert.py -v
+uv run pytest tests/test_api_driven/test_price_drop_alert.py -v
 
 # 2. Test order complete via API
-pytest tests/test_api_driven/test_order_complete.py -v
+uv run pytest tests/test_api_driven/test_order_complete.py -v
 
 # 3. Manual verification showing the complexity
-python -c "
+uv run python -c "
 from api_driven.demo import run_price_drop_demo
 run_price_drop_demo()
 "
@@ -395,7 +402,7 @@ run_price_drop_demo()
 **Verification:**
 ```bash
 # 1. Run comparison script
-python comparison/run_scenarios.py
+uv run python comparison/run_scenarios.py
 
 # 2. Review generated output
 cat comparison/analysis.md
@@ -421,7 +428,7 @@ cat comparison/analysis.md
 **Verification:**
 ```bash
 # 1. Start the unified API
-uvicorn api.main:app --reload
+uv run uvicorn api.main:app --reload
 
 # 2. Open API docs
 open http://localhost:8000/docs
@@ -431,8 +438,8 @@ curl http://localhost:8000/demo/event-sourced/order-shipped
 curl http://localhost:8000/demo/api-driven/order-shipped
 curl http://localhost:8000/demo/comparison/price-drop-alert
 
-# 4. Run full test suite
-pytest --cov=. --cov-report=html
+# 4. Run full test suite with coverage
+uv run pytest --cov=. --cov-report=html
 open htmlcov/index.html
 ```
 
@@ -585,7 +592,7 @@ The project will be considered complete when:
    - Order Complete notification ✓
 
 2. **Tests pass with good coverage**
-   - `pytest` runs green
+   - `uv run pytest` runs green
    - Coverage > 80%
 
 3. **Documentation is complete**
@@ -594,7 +601,7 @@ The project will be considered complete when:
    - Code has inline comments
 
 4. **Demo is runnable**
-   - `uvicorn api.main:app` starts successfully
+   - `uv run uvicorn api.main:app` starts successfully
    - API docs accessible at `/docs`
    - Scenarios can be triggered via API
 

@@ -1,0 +1,1 @@
+"""API-driven notification approach."""

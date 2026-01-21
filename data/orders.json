@@ -1,0 +1,91 @@
+[
+  {
+    "id": "ord-001",
+    "customer_id": "cust-001",
+    "status": "PROCESSING",
+    "line_items": [
+      {
+        "product_id": "prod-001",
+        "quantity": 1,
+        "unit_price": 149.99,
+        "status": "PENDING",
+        "shipped_at": null
+      },
+      {
+        "product_id": "prod-002",
+        "quantity": 2,
+        "unit_price": 79.99,
+        "status": "PENDING",
+        "shipped_at": null
+      }
+    ],
+    "total_amount": 309.97,
+    "created_at": "2024-06-01T14:30:00Z",
+    "updated_at": null
+  },
+  {
+    "id": "ord-002",
+    "customer_id": "cust-002",
+    "status": "PROCESSING",
+    "line_items": [
+      {
+        "product_id": "prod-003",
+        "quantity": 1,
+        "unit_price": 159.99,
+        "status": "SHIPPED",
+        "shipped_at": "2024-06-02T10:00:00Z"
+      },
+      {
+        "product_id": "prod-005",
+        "quantity": 1,
+        "unit_price": 89.99,
+        "status": "PENDING",
+        "shipped_at": null
+      },
+      {
+        "product_id": "prod-006",
+        "quantity": 1,
+        "unit_price": 49.99,
+        "status": "PENDING",
+        "shipped_at": null
+      }
+    ],
+    "total_amount": 299.97,
+    "created_at": "2024-06-01T09:15:00Z",
+    "updated_at": "2024-06-02T10:00:00Z"
+  },
+  {
+    "id": "ord-003",
+    "customer_id": "cust-003",
+    "status": "SHIPPED",
+    "line_items": [
+      {
+        "product_id": "prod-004",
+        "quantity": 1,
+        "unit_price": 199.99,
+        "status": "SHIPPED",
+        "shipped_at": "2024-05-28T15:30:00Z"
+      }
+    ],
+    "total_amount": 199.99,
+    "created_at": "2024-05-25T11:00:00Z",
+    "updated_at": "2024-05-28T15:30:00Z"
+  },
+  {
+    "id": "ord-004",
+    "customer_id": "cust-004",
+    "status": "PENDING",
+    "line_items": [
+      {
+        "product_id": "prod-001",
+        "quantity": 1,
+        "unit_price": 149.99,
+        "status": "PENDING",
+        "shipped_at": null
+      }
+    ],
+    "total_amount": 149.99,
+    "created_at": "2024-06-03T08:45:00Z",
+    "updated_at": null
+  }
+]
